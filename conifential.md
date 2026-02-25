@@ -2,7 +2,9 @@
 
 ## About
 level : Easy
+
 Topics: Digital Forensics-Broken Qr code
+
 Tools used: pdfimages(in kali) 
 
 ## Steps
