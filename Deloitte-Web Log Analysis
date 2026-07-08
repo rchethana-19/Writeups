@@ -1,0 +1,146 @@
+# Deloitte Cyber Job Simulation – Web Log Analysis
+
+## Overview
+
+As part of Deloitte's Cybersecurity Job Simulation, I analyzed a web application log (`web_analysis.log`) to identify authentication behavior and detect suspicious user activity. The objective was to examine user sessions, understand normal application workflows, and identify anomalies based on HTTP requests and user IDs.
+
+---
+
+## Skills Practiced
+
+- Log Analysis
+- HTTP Request Analysis
+- Authentication Flow Analysis
+- Threat Hunting
+- User Behavior Analysis
+- Linux Command Line
+- Security Monitoring
+- SOC Investigation
+
+---
+
+## Question 1
+
+### Is there a way for a hacker to access Daikibo's manufacturing status dashboard directly from the internet?
+
+### Answer
+
+**No, the attacker has no direct access to the status dashboard.**
+
+### How I Solved It
+
+I first examined the normal request flow for multiple users in the log.
+
+Every session followed the same pattern:
+
+```text
+GET /                     → 401 Unauthorized
+GET /login                → 200 OK
+GET /login.css
+GET /login.js
+POST /login               → 200 OK
+GET /                     → 200 OK (Authenticated)
+GET /api/factory/status
+GET /api/factory/machine/status
+```
+
+From this sequence, I observed that users could not access the dashboard directly. The application always required authentication before allowing access to protected resources.
+
+There were no signs of:
+
+- Authentication bypass
+- Brute-force attacks
+- SQL Injection
+- Command Injection
+- Cross-Site Scripting (XSS)
+
+This indicates that authentication is enforced before accessing the manufacturing dashboard.
+
+---
+
+## Question 2
+
+### Which user ID showed the most suspicious activity?
+
+**User ID**
+
+```text
+mdB7yD2dp1BFZPontHBQ1Z
+```
+
+### How I Solved It
+
+Instead of guessing, I searched the log for each user ID provided in the options using Linux `grep`.
+
+Commands used:
+
+```bash
+grep "5Eckr4DTaLLDaDMGqmMJ3g" web_requests.log
+
+grep "mdB7yD2dp1BFZPontHBQ1Z" web_requests.log
+
+grep "dBCm2JjBU815PB8zPDvKqv" web_requests.log
+
+grep "rxExVoSitLbzzw1bTJwNuJ" web_requests.log
+```
+
+I compared each user's activity based on:
+
+- Number of requests
+- Factories accessed
+- Machine queries
+- Wildcard (`*`) API requests
+- Overall browsing behavior
+
+The user **mdB7yD2dp1BFZPontHBQ1Z** generated the most suspicious activity compared to the other candidates, indicating possible enumeration or unusual exploration of manufacturing resources.
+
+---
+
+## What I Learned
+
+This exercise helped me understand how SOC analysts investigate application logs to distinguish between normal and suspicious user behavior.
+
+Key takeaways include:
+
+- Understanding the HTTP authentication workflow.
+- Recognizing normal user behavior versus abnormal activity.
+- Identifying enumeration patterns through repeated wildcard API requests.
+- Using Linux command-line tools to quickly investigate large log files.
+- Performing basic threat hunting without relying on specialized SIEM platforms.
+
+---
+
+## Tools Used
+
+- Linux Terminal
+- `grep`
+- Text Editor
+- Web Request Logs
+
+---
+
+## Key Concepts
+
+### Authentication Flow
+
+A secure web application should require authentication before granting access to protected resources. The repeated `401 Unauthorized` responses before login confirmed that authentication was working as expected.
+
+### Log Analysis
+
+Application logs provide valuable information about:
+
+- User activity
+- Login events
+- API usage
+- Session behavior
+- Potential Indicators of Compromise (IOCs)
+
+### Threat Hunting
+
+Rather than looking for malware, this exercise focused on identifying suspicious behavior by comparing user activity and looking for anomalies within otherwise legitimate traffic.
+
+---
+
+## Outcome
+
+Successfully analyzed the provided web request logs, verified that authentication was enforced before dashboard access, and identified the user account exhibiting the most suspicious activity through systematic log analysis.
